@@ -1,4 +1,4 @@
-import { placeholderCards } from './content/placeholderCards'
+import { cards } from './content/cards'
 import { placeholderErrorPool, placeholderPopulation } from './content/placeholderErrors'
 import { TURN_SEQUENCE } from './engine/types'
 import { Card } from './ui/Card'
@@ -15,7 +15,7 @@ function App() {
   const decidedThisTurn = new Set(
     state.decisions.filter((d) => d.turnIndex === state.turnIndex).map((d) => d.cardId),
   )
-  const pendingCards = placeholderCards.filter(
+  const pendingCards = cards.filter(
     (card) => card.turn === state.turn && !decidedThisTurn.has(card.id),
   )
   const activeCard = pendingCards[0]

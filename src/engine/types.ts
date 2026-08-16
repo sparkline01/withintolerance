@@ -71,11 +71,18 @@ export interface DecisionOption {
   setsFlags?: string[]
 }
 
+/** Present on interrupt ("Have you got a minute?") cards — spec §5.4. */
+export interface Npc {
+  name: string
+  role: string
+}
+
 export interface DecisionCard {
   id: string
   turn: TurnId
   trigger: 'scheduled' | 'conditional'
   requires?: string[]
+  npc?: Npc
   prompt: string
   context: string
   options: DecisionOption[]

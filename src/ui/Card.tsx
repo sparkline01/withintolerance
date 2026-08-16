@@ -15,6 +15,11 @@ export function Card({
 }) {
   return (
     <section className="card">
+      {card.npc && (
+        <p className="card-npc">
+          Have you got a minute? — <strong>{card.npc.name}</strong>, {card.npc.role}
+        </p>
+      )}
       <h2>{card.prompt}</h2>
       <p className="card-context">{card.context}</p>
       <div className="card-options">

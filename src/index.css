@@ -313,3 +313,15 @@ body {
   padding: 8px;
   margin: 0 0 8px;
 }
+
+/* --- Coda --- */
+
+.coda-timestamp {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  margin: 0 0 6px;
+}
+
+.coda-body {
+  white-space: pre-line;
+}

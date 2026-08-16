@@ -4,12 +4,14 @@ import { placeholderErrorPool, placeholderPopulation } from './content/placehold
 import { pendingCredibilityQueries, pendingDecisionCards, pendingFlavorEvents } from './content/pending'
 import { credibilityPoolFrom, selectRunContent } from './content/selectRun'
 import type { ErrorPool } from './engine/cascade'
+import { computeCoda } from './engine/coda'
 import type { CredibilityQueryDefinition } from './engine/credibility'
 import { determineSignoffOutcome, type FinaleState, type SignoffOutcome } from './engine/finale'
 import { deriveReadiness } from './engine/signoff'
 import type { DecisionCard, FlavorEvent } from './engine/types'
 import { TURN_SEQUENCE } from './engine/types'
 import { Card } from './ui/Card'
+import { CodaSequence } from './ui/CodaSequence'
 import { Dashboard } from './ui/Dashboard'
 import { Debrief } from './ui/Debrief'
 import { FinaleQueue } from './ui/FinaleQueue'
@@ -27,7 +29,7 @@ type PendingItem =
   | { kind: 'decision'; card: DecisionCard }
   | { kind: 'credibility'; query: CredibilityQueryDefinition }
 
-type FinalePhase = 'cycle' | 'queue' | 'signoff' | 'done'
+type FinalePhase = 'cycle' | 'queue' | 'signoff' | 'debrief' | 'coda' | 'complete'
 
 function App() {
   const content = useMemo(() => selectRunContent(SEED), [])
@@ -84,7 +86,13 @@ function App() {
     <main className="app">
       <header className="app-header">
         <h1>Within Tolerance</h1>
-        <p className="turn-label">{finalePhase === 'cycle' ? state.turn : 'Confirmation, through the day'}</p>
+        <p className="turn-label">
+          {finalePhase === 'cycle'
+            ? state.turn
+            : finalePhase === 'coda'
+              ? 'The following November'
+              : 'Confirmation, through the day'}
+        </p>
       </header>
 
       {finalePhase === 'cycle' && <Dashboard state={state} population={placeholderPopulation} />}
@@ -141,10 +149,10 @@ function App() {
       )}
 
       {finalePhase === 'signoff' && signoffOutcome && (
-        <SignoffScene outcome={signoffOutcome} onContinue={() => setFinalePhase('done')} />
+        <SignoffScene outcome={signoffOutcome} onContinue={() => setFinalePhase('debrief')} />
       )}
 
-      {finalePhase === 'done' && (
+      {finalePhase === 'debrief' && (
         <Debrief
           state={state}
           seed={SEED}
@@ -152,7 +160,24 @@ function App() {
           credibilityDefinitions={content.credibilityDefinitions}
           pools={pools}
           finaleErrors={finaleErrorPool}
+          onContinue={() => setFinalePhase('coda')}
         />
+      )}
+
+      {finalePhase === 'coda' && (
+        <CodaSequence
+          coda={computeCoda(SEED, state, content.cards, finaleErrorPool ?? undefined)}
+          onComplete={() => setFinalePhase('complete')}
+        />
+      )}
+
+      {finalePhase === 'complete' && (
+        <section className="card">
+          <p className="dev-note">
+            That's the whole cycle, September to the following November. The visual design pass (spec §13)
+            lands in build order step 10.
+          </p>
+        </section>
       )}
     </main>
   )

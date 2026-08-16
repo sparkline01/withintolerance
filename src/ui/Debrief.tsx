@@ -46,6 +46,7 @@ export function Debrief({
   credibilityDefinitions,
   pools,
   finaleErrors,
+  onContinue,
 }: {
   state: GameState
   seed: number
@@ -53,6 +54,7 @@ export function Debrief({
   credibilityDefinitions: CredibilityQueryDefinition[]
   pools: InitialPools
   finaleErrors: ErrorPool | null
+  onContinue: () => void
 }) {
   const [copied, setCopied] = useState(false)
 
@@ -160,6 +162,10 @@ export function Debrief({
           {copied ? 'Copied' : 'Copy for posting'}
         </button>
       </section>
+
+      <button type="button" className="advance-button" onClick={onContinue}>
+        See what happens next
+      </button>
     </div>
   )
 }

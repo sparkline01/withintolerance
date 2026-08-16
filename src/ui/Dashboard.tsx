@@ -3,6 +3,7 @@ import { openErrorsByTier, totalOpenErrors } from '../engine/cascade'
 import { displayState, type DependencyDisplayState } from '../engine/dependencies'
 import { deriveReadiness } from '../engine/signoff'
 import { DEADLINE_TURN_INDEX, TURN_SEQUENCE, type GameState } from '../engine/types'
+import { DigitGrid } from './DigitGrid'
 
 const CONFIDENCE_LABELS = [
   'Extract only',
@@ -68,14 +69,16 @@ export function Dashboard({ state, population }: { state: GameState; population:
   return (
     <div className="dashboard">
       <div className="dashboard-strip">
-        <div className="dashboard-item">
+        <div className="dashboard-item dashboard-item-headline">
           <span className="dashboard-label">Records in the return</span>
-          <span className="dashboard-value">{recordsInReturn.toLocaleString()}</span>
+          <span className="dashboard-value">
+            <DigitGrid value={recordsInReturn} ghostValue={Math.round(recordsInReturn + state.truth.accuracy)} />
+          </span>
           <span className="dashboard-sub">{confidenceLabel(state.turnIndex)}</span>
         </div>
         <div className="dashboard-item">
           <span className="dashboard-label">Open errors</span>
-          <span className="dashboard-value">
+          <span className={openTotal > 0 ? 'dashboard-value blocking' : 'dashboard-value'}>
             {openTotal}
             {delta !== 0 && (
               <span className={delta > 0 ? 'delta-up' : 'delta-down'}>

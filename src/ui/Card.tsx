@@ -1,10 +1,10 @@
 import type { DecisionCard } from '../engine/types'
+import { Avatar } from './Avatar'
 
 /**
  * Renders one decision card. Deliberately no visual distinction between
  * currencies (icon, colour) — spec §13.4: "the player should not be able
- * to pattern-match 'the safe one' without reading the teaser." Unstyled
- * per build order step 3; the visual pass is step 10.
+ * to pattern-match 'the safe one' without reading the teaser."
  */
 export function Card({
   card,
@@ -17,7 +17,10 @@ export function Card({
     <section className="card">
       {card.npc && (
         <p className="card-npc">
-          Have you got a minute? — <strong>{card.npc.name}</strong>, {card.npc.role}
+          <Avatar name={card.npc.name} />
+          <span>
+            Have you got a minute? — <strong>{card.npc.name}</strong>, {card.npc.role}
+          </span>
         </p>
       )}
       <h2>{card.prompt}</h2>

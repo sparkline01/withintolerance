@@ -5,11 +5,14 @@ import {
   createFinaleState,
   currentVignette,
   expireClock,
+  FINALE_CLOCK_SECONDS,
   type FinaleState,
   type FinaleVignette,
   isQueueComplete,
   resolveCurrentVignette,
 } from '../engine/finale'
+
+const URGENT_THRESHOLD_SECONDS = 15
 
 /**
  * The real-time queue (spec §10.2). Structurally different from every
@@ -18,6 +21,9 @@ import {
  * resolutions, not the exact timing of a given playthrough — the clock is
  * the pressure that produces that sequence, same as the rest of the game
  * is produced by a decision log.
+ *
+ * Mobile treatment (spec §13.4): a top-edge bar rather than a dominant
+ * numeric clock — this is the one place motion is justified at all.
  */
 export function FinaleQueue({
   definitions,
@@ -53,6 +59,7 @@ export function FinaleQueue({
   const definition = vignette ? definitions.find((d) => d.id === vignette.errorId) : undefined
   const openCount = totalOpenErrors(state.pool)
   const stillHolding = vignettes.length - state.currentIndex
+  const urgent = state.clockSecondsRemaining <= URGENT_THRESHOLD_SECONDS
 
   const resolve = (resolution: ErrorResolution) => setState((prev) => resolveCurrentVignette(prev, resolution))
 
@@ -70,7 +77,20 @@ export function FinaleQueue({
 
   return (
     <section className="card finale-queue">
-      <div className={state.clockSecondsRemaining <= 15 ? 'finale-clock finale-clock-urgent' : 'finale-clock'}>
+      <div
+        className="finale-bar-track"
+        role="progressbar"
+        aria-label="Time remaining"
+        aria-valuenow={state.clockSecondsRemaining}
+        aria-valuemin={0}
+        aria-valuemax={FINALE_CLOCK_SECONDS}
+      >
+        <div
+          className={urgent ? 'finale-bar-fill finale-bar-urgent' : 'finale-bar-fill'}
+          style={{ width: `${(state.clockSecondsRemaining / FINALE_CLOCK_SECONDS) * 100}%` }}
+        />
+      </div>
+      <div className={urgent ? 'finale-clock finale-clock-urgent' : 'finale-clock'}>
         {minutes}:{seconds}
         <span className="finale-holding"> — {stillHolding} still holding</span>
       </div>
@@ -90,7 +110,7 @@ export function FinaleQueue({
           <span className="option-label">Override</span>
           <span className="option-teaser">1 second off the clock.</span>
         </button>
-        <button type="button" className="card-option" onClick={() => resolve('unresolved')}>
+        <button type="button" className="card-option card-option-tolerance" onClick={() => resolve('unresolved')}>
           <span className="option-label">Leave in tolerance</span>
           <span className="option-teaser">Free.</span>
         </button>

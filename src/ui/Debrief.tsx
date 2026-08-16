@@ -14,6 +14,7 @@ import {
 } from '../engine/debrief'
 import type { InitialPools } from '../engine/state'
 import type { DecisionCard, GameState } from '../engine/types'
+import { DigitGrid } from './DigitGrid'
 import { ForecastChart } from './ForecastChart'
 
 const AXIS_LABEL: Record<BandedAxis, string> = {
@@ -77,6 +78,10 @@ export function Debrief({
 
       <section className="debrief-section">
         <h3>Shown vs true</h3>
+        <p className="digit-grid-resolve-label">Accuracy, resolved</p>
+        <p className="dashboard-value digit-grid-large">
+          <DigitGrid value={forecast[forecast.length - 1]?.shown ?? 0} ghostValue={finalAccuracy} resolved />
+        </p>
         <ForecastChart rows={forecast} />
         <p className="chart-legend">
           <span className="legend-shown">— shown</span> <span className="legend-truth">— true</span>

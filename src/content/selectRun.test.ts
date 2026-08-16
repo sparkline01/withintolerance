@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { cards as coreCards } from './cards'
+import { finaleVignettes as allFinaleVignettes } from './finaleVignettes'
 import { allFlavorEvents } from './flavorEvents'
 import { handoverVariants } from './handoverVariants'
 import { selectRunContent } from './selectRun'
@@ -47,6 +48,20 @@ describe('selectRunContent', () => {
     expect(content.credibilityDefinitions).toHaveLength(5)
     const ids = new Set(content.credibilityDefinitions.map((q) => q.id))
     expect(ids.size).toBe(5) // no duplicates
+  })
+
+  it('draws exactly 13 finale vignettes, plus exactly the error definitions they reference', () => {
+    const content = selectRunContent(1)
+    expect(content.finaleVignettes).toHaveLength(13)
+    const vignetteIds = new Set(content.finaleVignettes.map((v) => v.id))
+    expect(vignetteIds.size).toBe(13)
+    expect(vignetteIds.size).toBeLessThanOrEqual(allFinaleVignettes.length)
+
+    const referencedErrorIds = new Set(content.finaleVignettes.map((v) => v.errorId))
+    expect(content.finaleErrorDefinitions).toHaveLength(referencedErrorIds.size)
+    for (const def of content.finaleErrorDefinitions) {
+      expect(referencedErrorIds.has(def.id)).toBe(true)
+    }
   })
 
   it('sets audit_fires in initialFlags only on runs where the roll succeeds', () => {

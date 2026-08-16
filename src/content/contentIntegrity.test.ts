@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { AUDIT_ACTIVE_FLAG } from '../engine/state'
 import { cards as coreCards } from './cards'
+import { finaleErrorDefinitions, finaleVignettes } from './finaleVignettes'
 import { allFlavorEvents } from './flavorEvents'
 import { handoverVariants } from './handoverVariants'
 import { placeholderDependencyPool } from './placeholderDependencies'
@@ -135,5 +136,34 @@ describe('handover variant dependency overrides', () => {
   it('handover variant ids are unique', () => {
     const ids = handoverVariants.map((v) => v.id)
     expect(new Set(ids).size).toBe(ids.length)
+  })
+})
+
+describe('finale vignettes', () => {
+  const finaleErrorIds = new Set(finaleErrorDefinitions.map((d) => d.id))
+
+  it('every vignette references a real finale error definition', () => {
+    for (const vignette of finaleVignettes) {
+      expect(finaleErrorIds.has(vignette.errorId), `vignette "${vignette.id}" references unknown error "${vignette.errorId}"`).toBe(
+        true,
+      )
+    }
+  })
+
+  it('vignette ids are unique', () => {
+    const ids = finaleVignettes.map((v) => v.id)
+    expect(new Set(ids).size).toBe(ids.length)
+  })
+
+  it('every error definition is referenced by at least one vignette', () => {
+    const referenced = new Set(finaleVignettes.map((v) => v.errorId))
+    for (const def of finaleErrorDefinitions) {
+      expect(referenced.has(def.id), `error "${def.id}" has no vignette`).toBe(true)
+    }
+  })
+
+  it('is within the 15-20 range the spec calls for', () => {
+    expect(finaleVignettes.length).toBeGreaterThanOrEqual(15)
+    expect(finaleVignettes.length).toBeLessThanOrEqual(20)
   })
 })

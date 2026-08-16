@@ -199,3 +199,30 @@ body {
   font-style: italic;
   margin: 12px 0;
 }
+
+/* --- Finale queue --- */
+
+.finale-clock {
+  font-size: 1.5rem;
+  font-variant-numeric: tabular-nums;
+  margin-bottom: 10px;
+}
+
+.finale-clock-urgent {
+  font-weight: bold;
+}
+
+.finale-holding {
+  font-size: 0.9rem;
+  font-variant-numeric: normal;
+}
+
+.finale-complete p {
+  margin: 0 0 6px;
+}
+
+/* --- Sign-off scene --- */
+
+.signoff-scene h2 {
+  font-size: 1.3rem;
+}

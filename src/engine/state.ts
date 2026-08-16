@@ -1,4 +1,10 @@
 import {
+  createErrorPool,
+  type ErrorPool,
+  type ErrorResolution,
+  resolveError as resolveErrorInPool,
+} from './cascade'
+import {
   type DecisionCard,
   type GameState,
   type MetricRecord,
@@ -26,12 +32,13 @@ function cloneState(state: GameState): GameState {
     scheduledEffects: state.scheduledEffects.slice(),
     shown: cloneMetrics(state.shown),
     truth: cloneMetrics(state.truth),
+    errors: { definitions: state.errors.definitions, resolutions: { ...state.errors.resolutions } },
     flags: new Set(state.flags),
     history: state.history.slice(),
   }
 }
 
-export function createInitialState(seed: number): GameState {
+export function createInitialState(seed: number, errorPool: ErrorPool = createErrorPool([])): GameState {
   const shown = zeroMetrics()
   const truth = zeroMetrics()
   return {
@@ -42,6 +49,7 @@ export function createInitialState(seed: number): GameState {
     scheduledEffects: [],
     shown,
     truth,
+    errors: errorPool,
     flags: new Set(),
     history: [
       {
@@ -52,6 +60,17 @@ export function createInitialState(seed: number): GameState {
       },
     ],
   }
+}
+
+/** Resolve one error in the pool (spec §6). Does not touch shown/truth directly — see cascade.ts for why. */
+export function resolveError(
+  state: GameState,
+  errorId: string,
+  resolution: ErrorResolution,
+): GameState {
+  const next = cloneState(state)
+  next.errors = resolveErrorInPool(next.errors, errorId, resolution)
+  return next
 }
 
 /**

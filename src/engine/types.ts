@@ -3,6 +3,8 @@
  * See docs/spec.md §2.1, §3, §4, §5 for the design this implements.
  */
 
+import type { ErrorPool } from './cascade'
+
 /** The five scored axes (spec §3) plus the two tracked-but-unscored values. */
 export type MetricKey =
   | 'accuracy' // axis 1 — never shown during play, revealed at debrief only
@@ -120,8 +122,15 @@ export interface GameState {
   scheduledEffects: ScheduledEffect[]
   shown: MetricRecord
   truth: MetricRecord
+  errors: ErrorPool
   flags: Set<string>
   history: HistoryEntry[]
+  // Not yet implemented — later build-order steps (spec §16 steps 2/5):
+  // dependencies: SourceDependency[]
+  // roster: StaffMember[]
+  // credibility: CredibilityQuery[]
+  // signoff: { readiness: number; confidence: number; escalationRung: number }
+  // inherited: HandoverVariant
 }
 
 export function zeroMetrics(): MetricRecord {

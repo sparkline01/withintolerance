@@ -226,3 +226,90 @@ body {
 .signoff-scene h2 {
   font-size: 1.3rem;
 }
+
+/* --- Debrief --- */
+
+.debrief-section {
+  border: 1px solid;
+  padding: 12px;
+  margin-bottom: 10px;
+}
+
+.debrief-section h3 {
+  font-size: 1rem;
+  margin: 0 0 8px;
+}
+
+.debrief-note {
+  font-size: 0.85rem;
+  font-style: italic;
+  margin: 8px 0 0;
+}
+
+.forecast-chart {
+  width: 100%;
+  height: auto;
+}
+
+.forecast-gap {
+  fill: currentColor;
+  opacity: 0.15;
+  stroke: none;
+}
+
+.forecast-line-shown {
+  stroke: currentColor;
+  stroke-width: 1.5;
+  stroke-dasharray: 3 3;
+}
+
+.forecast-line-truth {
+  stroke: currentColor;
+  stroke-width: 2;
+}
+
+.chart-legend {
+  font-size: 0.75rem;
+  margin: 6px 0 0;
+}
+
+.axis-list {
+  margin: 0;
+  padding-left: 18px;
+}
+
+.axis-list li {
+  margin-bottom: 4px;
+}
+
+.counterfactual-list {
+  margin: 0;
+  padding-left: 18px;
+}
+
+.counterfactual-list li {
+  margin-bottom: 10px;
+  font-size: 0.9rem;
+}
+
+.debrief-section table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.8rem;
+  margin-top: 8px;
+}
+
+.debrief-section th,
+.debrief-section td {
+  text-align: left;
+  padding: 2px 4px;
+  border-bottom: 1px solid;
+}
+
+.share-text {
+  white-space: pre-wrap;
+  font-size: 0.8rem;
+  border: 1px solid;
+  padding: 8px;
+  margin: 0 0 8px;
+}

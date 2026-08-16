@@ -128,6 +128,19 @@ export interface DecisionLogEntry {
   optionId: string
 }
 
+/**
+ * A unified, replayable log of every choice the player made, used for the
+ * counterfactual re-simulation (spec §12.3). `decisions` alone isn't
+ * enough — credibility answers are choices too, but weren't previously
+ * logged anywhere replayable. Dependency chase/escalate/resolve actions
+ * aren't included: nothing in the current UI exposes them directly (they
+ * only ever happen as a side effect of a decision option), so there's
+ * nothing outside `decisions` to log for them yet.
+ */
+export type ActionLogEntry =
+  | { turnIndex: number; type: 'decide'; cardId: string; optionId: string }
+  | { turnIndex: number; type: 'answerCredibility'; queryId: string; optionId: string }
+
 /** One turn's snapshot of shown vs truth — the raw material for the forecast-accuracy table (spec §12.4). */
 export interface HistoryEntry {
   turnIndex: number
@@ -141,6 +154,7 @@ export interface GameState {
   turnIndex: number
   turn: TurnId
   decisions: DecisionLogEntry[]
+  actionLog: ActionLogEntry[]
   scheduledEffects: ScheduledEffect[]
   shown: MetricRecord
   truth: MetricRecord

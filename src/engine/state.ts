@@ -55,6 +55,7 @@ function cloneState(state: GameState): GameState {
     turnIndex: state.turnIndex,
     turn: state.turn,
     decisions: state.decisions.slice(),
+    actionLog: state.actionLog.slice(),
     scheduledEffects: state.scheduledEffects.slice(),
     shown: cloneMetrics(state.shown),
     truth: cloneMetrics(state.truth),
@@ -107,6 +108,7 @@ export function createInitialState(seed: number, pools: InitialPools = {}): Game
     turnIndex: 0,
     turn: TURN_SEQUENCE[0],
     decisions: [],
+    actionLog: [],
     scheduledEffects: [],
     shown,
     truth,
@@ -229,6 +231,8 @@ export function answerCredibilityQuery(
     applyEffects(next, option.shown, option.hidden, `${queryId}:${optionId}`)
   }
 
+  next.actionLog.push({ turnIndex: state.turnIndex, type: 'answerCredibility', queryId, optionId })
+
   snapshotHistory(next)
   return next
 }
@@ -278,6 +282,7 @@ export function applyDecision(
     cardId: card.id,
     optionId: option.id,
   })
+  next.actionLog.push({ turnIndex: state.turnIndex, type: 'decide', cardId: card.id, optionId: option.id })
 
   snapshotHistory(next)
   return next

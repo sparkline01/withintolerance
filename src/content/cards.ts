@@ -139,7 +139,10 @@ export const cards: DecisionCard[] = [
         currency: 'capacity',
         teaser: 'Four days. They will be right, and they will be right next year too.',
         sourceFix: true,
-        shown: [{ metric: 'team_capacity', delta: -2, delayTurns: 0 }],
+        shown: [
+          { metric: 'team_capacity', delta: -2, delayTurns: 0 },
+          { metric: 'downstream', delta: 1, delayTurns: 0 },
+        ],
         hidden: [{ metric: 'accuracy', delta: 3, delayTurns: 0 }],
         setsFlags: ['ruth_owes_you_nothing_now'],
         dependencyAction: { dependencyId: 'entry-quals', action: 'complete' },
@@ -149,7 +152,10 @@ export const cards: DecisionCard[] = [
         label: 'Default the uncoded ones to the modal value for the course',
         currency: 'accuracy',
         teaser: 'It will pass. Most of them will even be correct.',
-        shown: [{ metric: 'timeliness', delta: 2, delayTurns: 0 }],
+        shown: [
+          { metric: 'timeliness', delta: 2, delayTurns: 0 },
+          { metric: 'downstream', delta: -1, delayTurns: 0 },
+        ],
         hidden: [
           { metric: 'accuracy', delta: -3, delayTurns: 0 },
           { metric: 'recurring_debt', delta: 1, delayTurns: 0 },
@@ -297,7 +303,10 @@ export const cards: DecisionCard[] = [
         label: 'Give her the modelled range, with a confidence caveat',
         currency: 'goodwill',
         teaser: "She'll quote the top of it. At least it's honest.",
-        shown: [{ metric: 'goodwill', delta: -1, delayTurns: 0 }],
+        shown: [
+          { metric: 'goodwill', delta: -1, delayTurns: 0 },
+          { metric: 'downstream', delta: 1, delayTurns: 0 },
+        ],
         hidden: [],
       },
       {
@@ -305,7 +314,10 @@ export const cards: DecisionCard[] = [
         label: "Give her last year's confirmed number instead",
         currency: 'accuracy',
         teaser: 'Technically true. Also not this year’s.',
-        shown: [{ metric: 'timeliness', delta: 1, delayTurns: 0 }],
+        shown: [
+          { metric: 'timeliness', delta: 1, delayTurns: 0 },
+          { metric: 'downstream', delta: -1, delayTurns: 0 },
+        ],
         hidden: [{ metric: 'accuracy', delta: -1, delayTurns: 0 }],
       },
       {
@@ -506,7 +518,10 @@ export const cards: DecisionCard[] = [
         label: 'Accept her reading and code it that way',
         currency: 'accuracy',
         teaser: "It's defensible. It's also convenient.",
-        shown: [{ metric: 'goodwill', delta: 1, delayTurns: 0 }],
+        shown: [
+          { metric: 'goodwill', delta: 1, delayTurns: 0 },
+          { metric: 'downstream', delta: -1, delayTurns: 0 },
+        ],
         hidden: [
           { metric: 'accuracy', delta: -1, delayTurns: 0 },
           { metric: 'recurring_debt', delta: 1, delayTurns: 0 },
@@ -517,7 +532,10 @@ export const cards: DecisionCard[] = [
         label: 'Push back and use the more conservative reading',
         currency: 'goodwill',
         teaser: "She'll remember this at the next away day.",
-        shown: [{ metric: 'goodwill', delta: -2, delayTurns: 0 }],
+        shown: [
+          { metric: 'goodwill', delta: -2, delayTurns: 0 },
+          { metric: 'downstream', delta: 1, delayTurns: 0 },
+        ],
         hidden: [{ metric: 'accuracy', delta: 1, delayTurns: 0 }],
       },
       {
@@ -789,6 +807,7 @@ export const cards: DecisionCard[] = [
         shown: [
           { metric: 'timeliness', delta: -1, delayTurns: 0 },
           { metric: 'goodwill', delta: -1, delayTurns: 0 },
+          { metric: 'downstream', delta: 1, delayTurns: 0 },
         ],
         hidden: [{ metric: 'accuracy', delta: 2, delayTurns: 0 }],
       },
@@ -797,7 +816,10 @@ export const cards: DecisionCard[] = [
         label: 'Phase it in from next year instead',
         currency: 'accuracy',
         teaser: 'Quieter. Also a second wrong year, not one.',
-        shown: [{ metric: 'goodwill', delta: 1, delayTurns: 0 }],
+        shown: [
+          { metric: 'goodwill', delta: 1, delayTurns: 0 },
+          { metric: 'downstream', delta: -1, delayTurns: 0 },
+        ],
         hidden: [
           { metric: 'accuracy', delta: -1, delayTurns: 0 },
           { metric: 'recurring_debt', delta: 1, delayTurns: 0 },

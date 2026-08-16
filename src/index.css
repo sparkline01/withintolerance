@@ -1,0 +1,10 @@
+/* Placeholder reset. Real palette and type direction land in the visual design
+   pass (spec §13) once the engine and turn loop are working. */
+:root {
+  color-scheme: light dark;
+  font: 16px/1.4 system-ui, 'Segoe UI', Roboto, sans-serif;
+}
+
+body {
+  margin: 0;
+}

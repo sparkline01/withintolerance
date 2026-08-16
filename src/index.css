@@ -98,6 +98,44 @@ body {
   font-size: 0.8rem;
 }
 
+.signoff-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 4px 0;
+}
+
+.signoff-row progress {
+  flex: 1;
+  min-width: 0;
+}
+
+.escalation-note {
+  font-size: 0.8rem;
+  font-weight: bold;
+  margin: 4px 0 8px;
+}
+
+.dependency-heading {
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  margin: 8px 0 4px;
+}
+
+.dependency-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 8px;
+}
+
+.dependency-chip {
+  font-size: 0.75rem;
+  border: 1px solid;
+  padding: 3px 6px;
+  border-radius: 3px;
+}
+
 /* --- Card --- */
 
 .card {

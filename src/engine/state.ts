@@ -5,6 +5,26 @@ import {
   resolveError as resolveErrorInPool,
 } from './cascade'
 import {
+  answerQuery as answerQueryInPool,
+  createCredibilityPool,
+  type CredibilityPool,
+} from './credibility'
+import {
+  chaseDependency as chaseDependencyInPool,
+  createDependencyPool,
+  degradeDependencies,
+  type DependencyPool,
+  escalateDependency as escalateDependencyInPool,
+} from './dependencies'
+import {
+  advanceEscalation,
+  createSignoffState,
+  deriveReadiness,
+  STANDING_WEEKLY_CAPACITY_COST,
+  type SignoffState,
+} from './signoff'
+import {
+  DEADLINE_TURN_INDEX,
   type DecisionCard,
   type GameState,
   type MetricRecord,
@@ -33,12 +53,26 @@ function cloneState(state: GameState): GameState {
     shown: cloneMetrics(state.shown),
     truth: cloneMetrics(state.truth),
     errors: { definitions: state.errors.definitions, resolutions: { ...state.errors.resolutions } },
+    dependencies: {
+      definitions: state.dependencies.definitions,
+      runtime: { ...state.dependencies.runtime },
+    },
+    credibility: { definitions: state.credibility.definitions, answers: { ...state.credibility.answers } },
+    signoff: { ...state.signoff },
     flags: new Set(state.flags),
     history: state.history.slice(),
   }
 }
 
-export function createInitialState(seed: number, errorPool: ErrorPool = createErrorPool([])): GameState {
+export function createInitialState(
+  seed: number,
+  pools: {
+    errors?: ErrorPool
+    dependencies?: DependencyPool
+    credibility?: CredibilityPool
+    signoff?: SignoffState
+  } = {},
+): GameState {
   const shown = zeroMetrics()
   const truth = zeroMetrics()
   return {
@@ -49,7 +83,10 @@ export function createInitialState(seed: number, errorPool: ErrorPool = createEr
     scheduledEffects: [],
     shown,
     truth,
-    errors: errorPool,
+    errors: pools.errors ?? createErrorPool([]),
+    dependencies: pools.dependencies ?? createDependencyPool([]),
+    credibility: pools.credibility ?? createCredibilityPool([]),
+    signoff: pools.signoff ?? createSignoffState(),
     flags: new Set(),
     history: [
       {
@@ -70,6 +107,28 @@ export function resolveError(
 ): GameState {
   const next = cloneState(state)
   next.errors = resolveErrorInPool(next.errors, errorId, resolution)
+  return next
+}
+
+export function chaseDependency(state: GameState, dependencyId: string): GameState {
+  const next = cloneState(state)
+  next.dependencies = chaseDependencyInPool(next.dependencies, dependencyId)
+  return next
+}
+
+export function escalateDependency(state: GameState, dependencyId: string): GameState {
+  const next = cloneState(state)
+  next.dependencies = escalateDependencyInPool(next.dependencies, dependencyId)
+  return next
+}
+
+export function answerCredibilityQuery(
+  state: GameState,
+  queryId: string,
+  optionId: string,
+): GameState {
+  const next = cloneState(state)
+  next.credibility = answerQueryInPool(next.credibility, queryId, optionId)
   return next
 }
 
@@ -142,8 +201,10 @@ export function applyDecision(
 }
 
 /**
- * Move to the next turn, applying any effects scheduled to land on it and
- * logging the resulting shown/truth snapshot to history (spec §5.2, §12.4).
+ * Move to the next turn: land scheduled effects, degrade untouched
+ * dependencies, apply the escalation ladder's standing-weekly cost, check
+ * whether a new rung is triggered, and log the resulting snapshot to
+ * history (spec §5.2, §5.5, §7.3, §12.4).
  */
 export function advanceTurn(state: GameState): GameState {
   const nextIndex = state.turnIndex + 1
@@ -163,6 +224,26 @@ export function advanceTurn(state: GameState): GameState {
   for (const effect of landing) {
     const bucket = effect.channel === 'shown' ? next.shown : next.truth
     bucket[effect.metric] += effect.delta
+  }
+
+  next.dependencies = degradeDependencies(next.dependencies)
+
+  // Rung 3+ ("standing weekly"): costs capacity every remaining turn (§7.3).
+  if (next.signoff.escalationRung >= 3) {
+    next.shown.team_capacity -= STANDING_WEEKLY_CAPACITY_COST
+  }
+
+  // Past the deadline and not yet fully ready: the ladder advances one rung
+  // per turn. Readiness of 1 means fully ready — no further escalation.
+  if (nextIndex > DEADLINE_TURN_INDEX) {
+    const readiness = deriveReadiness({
+      errors: next.errors,
+      credibility: next.credibility,
+      dependencies: next.dependencies,
+    })
+    if (readiness < 1) {
+      next.signoff = advanceEscalation(next.signoff)
+    }
   }
 
   next.history.push({

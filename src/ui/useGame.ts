@@ -1,12 +1,24 @@
 import { useReducer } from 'react'
-import type { ErrorPool, ErrorResolution } from '../engine/cascade'
-import { advanceTurn, applyDecision, createInitialState, resolveError } from '../engine/state'
+import type { ErrorResolution } from '../engine/cascade'
+import type { InitialPools } from '../engine/simulate'
+import {
+  advanceTurn,
+  answerCredibilityQuery,
+  applyDecision,
+  chaseDependency,
+  createInitialState,
+  escalateDependency,
+  resolveError,
+} from '../engine/state'
 import type { DecisionCard, GameState } from '../engine/types'
 
 type Action =
   | { type: 'decide'; card: DecisionCard; optionId: string }
   | { type: 'advance' }
   | { type: 'resolveError'; errorId: string; resolution: ErrorResolution }
+  | { type: 'chaseDependency'; dependencyId: string }
+  | { type: 'escalateDependency'; dependencyId: string }
+  | { type: 'answerCredibilityQuery'; queryId: string; optionId: string }
 
 function reducer(state: GameState, action: Action): GameState {
   switch (action.type) {
@@ -16,6 +28,12 @@ function reducer(state: GameState, action: Action): GameState {
       return advanceTurn(state)
     case 'resolveError':
       return resolveError(state, action.errorId, action.resolution)
+    case 'chaseDependency':
+      return chaseDependency(state, action.dependencyId)
+    case 'escalateDependency':
+      return escalateDependency(state, action.dependencyId)
+    case 'answerCredibilityQuery':
+      return answerCredibilityQuery(state, action.queryId, action.optionId)
   }
 }
 
@@ -24,10 +42,8 @@ function reducer(state: GameState, action: Action): GameState {
  * does no work beyond dispatching to the same functions the determinism
  * tests exercise directly, so nothing UI-specific leaks into engine logic.
  */
-export function useGame(seed: number, errorPool: ErrorPool) {
-  const [state, dispatch] = useReducer(reducer, undefined, () =>
-    createInitialState(seed, errorPool),
-  )
+export function useGame(seed: number, pools: InitialPools) {
+  const [state, dispatch] = useReducer(reducer, undefined, () => createInitialState(seed, pools))
 
   return {
     state,
@@ -35,5 +51,10 @@ export function useGame(seed: number, errorPool: ErrorPool) {
     advance: () => dispatch({ type: 'advance' }),
     resolveErrorAction: (errorId: string, resolution: ErrorResolution) =>
       dispatch({ type: 'resolveError', errorId, resolution }),
+    chaseDependencyAction: (dependencyId: string) => dispatch({ type: 'chaseDependency', dependencyId }),
+    escalateDependencyAction: (dependencyId: string) =>
+      dispatch({ type: 'escalateDependency', dependencyId }),
+    answerCredibilityQueryAction: (queryId: string, optionId: string) =>
+      dispatch({ type: 'answerCredibilityQuery', queryId, optionId }),
   }
 }

@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState } from 'react'
-import { openErrorsByTier, totalOpenErrors, type ErrorPool } from '../engine/cascade'
-import { TURN_SEQUENCE, type GameState } from '../engine/types'
+import { openErrorsByTier, totalOpenErrors } from '../engine/cascade'
+import { displayState, type DependencyDisplayState } from '../engine/dependencies'
+import { deriveReadiness } from '../engine/signoff'
+import { DEADLINE_TURN_INDEX, TURN_SEQUENCE, type GameState } from '../engine/types'
 
 const CONFIDENCE_LABELS = [
   'Extract only',
@@ -9,8 +11,13 @@ const CONFIDENCE_LABELS = [
   'Submitted, unsigned',
 ] as const
 
-/** Turn index the deadline falls on — matches "9 / May" in spec §9's turn table. */
-const DEADLINE_TURN_INDEX = TURN_SEQUENCE.indexOf('May')
+const DEPENDENCY_CHIP_LABEL: Record<DependencyDisplayState, string> = {
+  ready: 'Ready',
+  partial: 'Partial',
+  not_started: 'Not started',
+  chased: 'Chased',
+  no_reply: 'Nobody has replied',
+}
 
 function confidenceLabel(turnIndex: number): string {
   const progress = turnIndex / (TURN_SEQUENCE.length - 1)
@@ -23,7 +30,8 @@ function confidenceLabel(turnIndex: number): string {
 
 /**
  * Note what is deliberately NOT here, per spec §5.8: accuracy, and `you`.
- * Those never appear until the debrief.
+ * Those never appear until the debrief. Confidence is shown as a bar per
+ * spec, but never as the accountable officer's reasoning — just the number.
  *
  * Mobile treatment: a collapsed three-item strip (records in the return,
  * open errors with delta, days to deadline) with everything else behind a
@@ -31,18 +39,15 @@ function confidenceLabel(turnIndex: number): string {
  * the desktop version, not a compromise, so it's the only mode implemented
  * for now. The desktop always-expanded panel is a later pass.
  */
-export function Dashboard({
-  state,
-  errors,
-  population,
-}: {
-  state: GameState
-  errors: ErrorPool
-  population: number
-}) {
+export function Dashboard({ state, population }: { state: GameState; population: number }) {
   const [expanded, setExpanded] = useState(false)
-  const openTotal = totalOpenErrors(errors)
-  const openByTier = openErrorsByTier(errors)
+  const openTotal = totalOpenErrors(state.errors)
+  const openByTier = openErrorsByTier(state.errors)
+  const readiness = deriveReadiness({
+    errors: state.errors,
+    credibility: state.credibility,
+    dependencies: state.dependencies,
+  })
 
   const previousTurnIndex = useRef(state.turnIndex)
   const openAtTurnStart = useRef(openTotal)
@@ -98,6 +103,19 @@ export function Dashboard({
           <p>
             Turn {state.turnIndex} of {TURN_SEQUENCE.length - 1} — {state.turn}
           </p>
+
+          <p className="signoff-row">
+            Readiness
+            <progress max={1} value={readiness} /> {Math.round(readiness * 100)}%
+          </p>
+          <p className="signoff-row">
+            Confidence
+            <progress max={1} value={state.signoff.confidence} /> {Math.round(state.signoff.confidence * 100)}%
+          </p>
+          {state.signoff.escalationRung > 0 && (
+            <p className="escalation-note">Escalation rung {state.signoff.escalationRung} of 5</p>
+          )}
+
           <table>
             <thead>
               <tr>
@@ -114,6 +132,7 @@ export function Dashboard({
               ))}
             </tbody>
           </table>
+
           <table>
             <thead>
               <tr>
@@ -140,9 +159,21 @@ export function Dashboard({
               </tr>
             </tbody>
           </table>
+
+          <p className="dependency-heading">Source dependencies</p>
+          <div className="dependency-chips">
+            {state.dependencies.definitions.map((def) => (
+              <span key={def.id} className={`dependency-chip chip-${displayState(state.dependencies, def.id)}`}>
+                {def.label}: {DEPENDENCY_CHIP_LABEL[displayState(state.dependencies, def.id)]}
+              </span>
+            ))}
+          </div>
+
           <p className="full-position-note">
-            Team roster, source dependencies, credibility queries, and sign-off gates aren't modelled
-            yet — build order step 5.
+            {state.credibility.definitions.length > 0
+              ? `Credibility: ${Object.keys(state.credibility.answers).length} of ${state.credibility.definitions.length} queries answered.`
+              : 'No open credibility queries.'}{' '}
+            Team roster isn't modelled yet.
           </p>
         </div>
       )}

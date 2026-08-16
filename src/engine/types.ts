@@ -4,6 +4,9 @@
  */
 
 import type { ErrorPool } from './cascade'
+import type { CredibilityPool } from './credibility'
+import type { DependencyPool } from './dependencies'
+import type { SignoffState } from './signoff'
 
 /** The five scored axes (spec §3) plus the two tracked-but-unscored values. */
 export type MetricKey =
@@ -43,6 +46,9 @@ export const TURN_SEQUENCE = [
 ] as const
 
 export type TurnId = (typeof TURN_SEQUENCE)[number]
+
+/** Turn index the deadline falls on — "9 / May" in spec §9's turn table. */
+export const DEADLINE_TURN_INDEX = TURN_SEQUENCE.indexOf('May')
 
 export type Currency = 'capacity' | 'accuracy' | 'goodwill' | 'self'
 
@@ -130,14 +136,14 @@ export interface GameState {
   shown: MetricRecord
   truth: MetricRecord
   errors: ErrorPool
+  dependencies: DependencyPool
+  credibility: CredibilityPool
+  signoff: SignoffState
   flags: Set<string>
   history: HistoryEntry[]
-  // Not yet implemented — later build-order steps (spec §16 steps 2/5):
-  // dependencies: SourceDependency[]
-  // roster: StaffMember[]
-  // credibility: CredibilityQuery[]
-  // signoff: { readiness: number; confidence: number; escalationRung: number }
-  // inherited: HandoverVariant
+  // Not yet implemented — later build-order steps (spec §16 steps 6/8):
+  // roster: StaffMember[] — individual staff status, driven by authored content
+  // inherited: HandoverVariant — sets initial confidence, dependency readiness, etc. (§8)
 }
 
 export function zeroMetrics(): MetricRecord {

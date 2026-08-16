@@ -1,5 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { sampleCards } from './__fixtures__/sampleCards'
+import { createErrorPool, type ErrorDefinition } from './cascade'
+import { createDependencyPool, getReadiness, type DependencyDefinition } from './dependencies'
 import { runScript, type ScriptStep } from './simulate'
 
 // One full pass through the fixture cards, including a delayed hidden
@@ -62,6 +64,73 @@ describe('effect scheduler', () => {
       { type: 'decide', cardId: 'oct-entry-quals-uncoded', optionId: 'not-a-real-option' },
     ]
     expect(() => runScript(1, sampleCards, bad)).toThrow()
+  })
+})
+
+describe('dependency degradation on turn advance', () => {
+  const dependency: DependencyDefinition = {
+    id: 'd1',
+    label: 'x',
+    owner: 'x',
+    ownerName: 'x',
+    initialReadiness: 0.5,
+    slipsPerTurn: 0.1,
+    chaseCost: {},
+    escalateCost: {},
+    workaroundAvailable: true,
+    workaroundAccuracyPenalty: -1,
+  }
+
+  it('reduces readiness passively when a turn advances, without any player action', () => {
+    const state = runScript(1, [], [{ type: 'advance' }], {
+      dependencies: createDependencyPool([dependency]),
+    })
+    expect(getReadiness(state.dependencies, 'd1')).toBeCloseTo(0.4)
+  })
+})
+
+describe('escalation ladder wiring in advanceTurn', () => {
+  const stuckError: ErrorDefinition = {
+    id: 'stuck-error',
+    recordId: 'r1',
+    tier: 1,
+    severity: 'blocking',
+    ruleCode: 'X',
+    label: 'x',
+  }
+
+  function advanceSteps(count: number): ScriptStep[] {
+    return Array.from({ length: count }, () => ({ type: 'advance' }) as const)
+  }
+
+  it('does not escalate on arrival at the deadline turn itself', () => {
+    // 8 advances from Handover reaches turnIndex 8, which is May.
+    const state = runScript(1, [], advanceSteps(8), { errors: createErrorPool([stuckError]) })
+    expect(state.turn).toBe('May')
+    expect(state.signoff.escalationRung).toBe(0)
+  })
+
+  it('escalates by one rung per turn once past the deadline while readiness stays below 1', () => {
+    const state = runScript(1, [], advanceSteps(9), { errors: createErrorPool([stuckError]) })
+    expect(state.turn).toBe('June')
+    expect(state.signoff.escalationRung).toBe(1)
+  })
+
+  it('does not escalate once readiness has reached 1', () => {
+    const script: ScriptStep[] = [
+      ...advanceSteps(8),
+      { type: 'resolve', errorId: 'stuck-error', resolution: 'source_fix' },
+      { type: 'advance' },
+    ]
+    const state = runScript(1, [], script, { errors: createErrorPool([stuckError]) })
+    expect(state.signoff.escalationRung).toBe(0)
+  })
+
+  it('applies the standing-weekly capacity cost every turn once rung 3 is reached', () => {
+    const state = runScript(1, [], [{ type: 'advance' }], {
+      signoff: { confidence: 0.5, escalationRung: 3 },
+    })
+    expect(state.shown.team_capacity).toBe(-1)
   })
 })
 

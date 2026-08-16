@@ -1,4 +1,6 @@
 import { cards } from './content/cards'
+import { placeholderCredibilityPool } from './content/placeholderCredibility'
+import { placeholderDependencyPool } from './content/placeholderDependencies'
 import { placeholderErrorPool, placeholderPopulation } from './content/placeholderErrors'
 import { TURN_SEQUENCE } from './engine/types'
 import { Card } from './ui/Card'
@@ -10,7 +12,11 @@ import { useGame } from './ui/useGame'
 const SEED = 20260816
 
 function App() {
-  const { state, decide, advance } = useGame(SEED, placeholderErrorPool)
+  const { state, decide, advance } = useGame(SEED, {
+    errors: placeholderErrorPool,
+    dependencies: placeholderDependencyPool,
+    credibility: placeholderCredibilityPool,
+  })
 
   const decidedThisTurn = new Set(
     state.decisions.filter((d) => d.turnIndex === state.turnIndex).map((d) => d.cardId),
@@ -28,7 +34,7 @@ function App() {
         <p className="turn-label">{state.turn}</p>
       </header>
 
-      <Dashboard state={state} errors={state.errors} population={placeholderPopulation} />
+      <Dashboard state={state} population={placeholderPopulation} />
 
       {activeCard ? (
         <Card card={activeCard} onChoose={(optionId) => decide(activeCard, optionId)} />

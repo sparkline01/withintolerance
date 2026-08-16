@@ -16,9 +16,9 @@ const definitions: CredibilityQueryDefinition[] = [
     query: 'A 40% fall in part-time first degree headcount.',
     truth: 'Two courses moved to a partner in 2023 and the mapping never followed them.',
     options: [
-      { id: 'restate', label: 'Restate the courses correctly', durability: 'high' },
-      { id: 'demand', label: 'Explain it as demand', durability: 'low' },
-      { id: 'portfolio', label: 'Explain it as a coding change', durability: 'medium' },
+      { id: 'restate', label: 'Restate the courses correctly', durability: 'high', shown: [], hidden: [] },
+      { id: 'demand', label: 'Explain it as demand', durability: 'low', shown: [], hidden: [] },
+      { id: 'portfolio', label: 'Explain it as a coding change', durability: 'medium', shown: [], hidden: [] },
     ],
   },
 ]

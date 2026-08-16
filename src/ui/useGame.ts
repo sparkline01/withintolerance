@@ -5,12 +5,13 @@ import {
   advanceTurn,
   answerCredibilityQuery,
   applyDecision,
+  applyFlavorEvent,
   chaseDependency,
   createInitialState,
   escalateDependency,
   resolveError,
 } from '../engine/state'
-import type { DecisionCard, GameState } from '../engine/types'
+import type { DecisionCard, FlavorEvent, GameState } from '../engine/types'
 
 type Action =
   | { type: 'decide'; card: DecisionCard; optionId: string }
@@ -19,6 +20,7 @@ type Action =
   | { type: 'chaseDependency'; dependencyId: string }
   | { type: 'escalateDependency'; dependencyId: string }
   | { type: 'answerCredibilityQuery'; queryId: string; optionId: string }
+  | { type: 'acknowledgeFlavorEvent'; event: FlavorEvent }
 
 function reducer(state: GameState, action: Action): GameState {
   switch (action.type) {
@@ -34,6 +36,8 @@ function reducer(state: GameState, action: Action): GameState {
       return escalateDependency(state, action.dependencyId)
     case 'answerCredibilityQuery':
       return answerCredibilityQuery(state, action.queryId, action.optionId)
+    case 'acknowledgeFlavorEvent':
+      return applyFlavorEvent(state, action.event)
   }
 }
 
@@ -56,5 +60,6 @@ export function useGame(seed: number, pools: InitialPools) {
       dispatch({ type: 'escalateDependency', dependencyId }),
     answerCredibilityQueryAction: (queryId: string, optionId: string) =>
       dispatch({ type: 'answerCredibilityQuery', queryId, optionId }),
+    acknowledgeFlavorEvent: (event: FlavorEvent) => dispatch({ type: 'acknowledgeFlavorEvent', event }),
   }
 }

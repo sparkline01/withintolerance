@@ -65,6 +65,12 @@ export interface Effect {
   delayTurns: number
 }
 
+/** A decision option can act on dependencies.ts directly, rather than only metrics. */
+export interface DependencyAction {
+  dependencyId: string
+  action: 'chase' | 'escalate' | 'complete'
+}
+
 export interface DecisionOption {
   id: string
   label: string
@@ -75,6 +81,9 @@ export interface DecisionOption {
   hidden: Effect[]
   unlocks?: string[]
   setsFlags?: string[]
+  /** Immediate adjustment to signoff confidence (spec §7.2). */
+  confidenceDelta?: number
+  dependencyAction?: DependencyAction
 }
 
 /** Present on interrupt ("Have you got a minute?") cards — spec §5.4. */
@@ -139,11 +148,12 @@ export interface GameState {
   dependencies: DependencyPool
   credibility: CredibilityPool
   signoff: SignoffState
+  /** Acknowledged flavor event ids this turn, so they don't re-show if a turn re-renders. */
+  acknowledgedFlavorEvents: string[]
   flags: Set<string>
   history: HistoryEntry[]
-  // Not yet implemented — later build-order steps (spec §16 steps 6/8):
+  // Not yet implemented — later build-order steps (spec §16 step 6+):
   // roster: StaffMember[] — individual staff status, driven by authored content
-  // inherited: HandoverVariant — sets initial confidence, dependency readiness, etc. (§8)
 }
 
 export function zeroMetrics(): MetricRecord {

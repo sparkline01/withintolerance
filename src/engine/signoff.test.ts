@@ -59,7 +59,7 @@ describe('deriveReadiness', () => {
     turn: 'February',
     query: 'x',
     truth: 'x',
-    options: [{ id: 'o1', label: 'x', durability: 'high' }],
+    options: [{ id: 'o1', label: 'x', durability: 'high', shown: [], hidden: [] }],
   }
   const dependency: DependencyDefinition = {
     id: 'd1',

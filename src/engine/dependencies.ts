@@ -112,6 +112,11 @@ export function escalateDependency(pool: DependencyPool, id: string): Dependency
   }))
 }
 
+/** For decision options that ARE the source-fix for a dependency outright — sets it fully ready. */
+export function completeDependency(pool: DependencyPool, id: string): DependencyPool {
+  return withRuntime(pool, id, (runtime) => ({ ...runtime, readiness: 1 }))
+}
+
 /** Passive per-turn degradation for everything not yet fully ready (spec §5.5). */
 export function degradeDependencies(pool: DependencyPool): DependencyPool {
   const runtime: Record<string, DependencyRuntime> = {}

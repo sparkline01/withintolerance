@@ -186,3 +186,16 @@ body {
   min-height: 44px;
   margin-top: 8px;
 }
+
+/* --- Handover screen --- */
+
+.handover-paragraph {
+  margin: 0 0 10px;
+  white-space: pre-line;
+}
+
+.handover-inherited {
+  font-size: 0.85rem;
+  font-style: italic;
+  margin: 12px 0;
+}

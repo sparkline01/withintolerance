@@ -1,17 +1,16 @@
-import { createErrorPool, type ErrorPool, type ErrorResolution } from './cascade'
-import { createCredibilityPool, type CredibilityPool } from './credibility'
-import { createDependencyPool, type DependencyPool } from './dependencies'
-import { createSignoffState, type SignoffState } from './signoff'
+import type { ErrorResolution } from './cascade'
 import {
   advanceTurn,
   answerCredibilityQuery,
   applyDecision,
+  applyFlavorEvent,
   chaseDependency,
   createInitialState,
   escalateDependency,
+  type InitialPools,
   resolveError,
 } from './state'
-import type { DecisionCard, GameState } from './types'
+import type { DecisionCard, FlavorEvent, GameState } from './types'
 
 export type ScriptStep =
   | { type: 'decide'; cardId: string; optionId: string }
@@ -20,35 +19,28 @@ export type ScriptStep =
   | { type: 'chase'; dependencyId: string }
   | { type: 'escalate'; dependencyId: string }
   | { type: 'answer'; queryId: string; optionId: string }
+  | { type: 'acknowledge'; eventId: string }
 
-export interface InitialPools {
-  errors?: ErrorPool
-  dependencies?: DependencyPool
-  credibility?: CredibilityPool
-  signoff?: SignoffState
-}
+export type { InitialPools }
 
 /**
  * Replay an ordered script of decisions, turn-advances, error resolutions,
- * dependency actions, and credibility answers from a fresh state. This is
- * the shape the determinism guarantee is built on: the same (seed, cards,
- * pools, script) must always produce the same GameState, and the
- * counterfactual re-simulation (spec §12.3) is just this function called
- * again with one script entry removed or swapped.
+ * dependency actions, credibility answers, and flavor-event acknowledgements
+ * from a fresh state. This is the shape the determinism guarantee is built
+ * on: the same (seed, cards, pools, script) must always produce the same
+ * GameState, and the counterfactual re-simulation (spec §12.3) is just this
+ * function called again with one script entry removed or swapped.
  */
 export function runScript(
   seed: number,
   cards: readonly DecisionCard[],
   script: readonly ScriptStep[],
   pools: InitialPools = {},
+  flavorEvents: readonly FlavorEvent[] = [],
 ): GameState {
   const cardsById = new Map(cards.map((c) => [c.id, c]))
-  let state = createInitialState(seed, {
-    errors: pools.errors ?? createErrorPool([]),
-    dependencies: pools.dependencies ?? createDependencyPool([]),
-    credibility: pools.credibility ?? createCredibilityPool([]),
-    signoff: pools.signoff ?? createSignoffState(),
-  })
+  const eventsById = new Map(flavorEvents.map((e) => [e.id, e]))
+  let state = createInitialState(seed, pools)
 
   for (const step of script) {
     if (step.type === 'decide') {
@@ -63,6 +55,10 @@ export function runScript(
       state = escalateDependency(state, step.dependencyId)
     } else if (step.type === 'answer') {
       state = answerCredibilityQuery(state, step.queryId, step.optionId)
+    } else if (step.type === 'acknowledge') {
+      const event = eventsById.get(step.eventId)
+      if (!event) throw new Error(`Unknown flavor event "${step.eventId}"`)
+      state = applyFlavorEvent(state, event)
     } else {
       state = advanceTurn(state)
     }

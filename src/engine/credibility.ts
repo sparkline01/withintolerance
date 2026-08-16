@@ -1,4 +1,4 @@
-import type { TurnId } from './types'
+import type { Effect, TurnId } from './types'
 
 /**
  * Credibility queries — the "explain this number" moments (spec §5.7).
@@ -10,10 +10,18 @@ import type { TurnId } from './types'
  */
 export type CredibilityDurability = 'low' | 'medium' | 'high'
 
+/**
+ * Options carry shown/hidden effects just like a decision card's options
+ * (spec §5.7's own example shows a `shown` array per option) — a
+ * credibility query mechanically IS a decision, just one whose durability
+ * is hidden and whose consequences may resurface in the coda.
+ */
 export interface CredibilityOption {
   id: string
   label: string
   durability: CredibilityDurability
+  shown: Effect[]
+  hidden: Effect[]
 }
 
 export interface CredibilityQueryDefinition {
